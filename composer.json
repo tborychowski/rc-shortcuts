@@ -1,0 +1,18 @@
+{
+	"name": "rc/shortcuts",
+	"type": "roundcube-plugin",
+	"description": "Keyboard shortcuts for Roundcube",
+	"homepage": "https://github.com/tborychowski/roundcube-plugins",
+	"license": "GPLv3",
+	"version": "1.0.0",
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://plugins.roundcube.net"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0",
+		"roundcube/plugin-installer": ">=0.1.3"
+	}
+}
