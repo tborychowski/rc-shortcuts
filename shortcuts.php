@@ -1,6 +1,6 @@
 <?php
 
-class RCShortcuts extends rcube_plugin	{
+class shortcuts extends rcube_plugin	{
 
 	// all task except login and logout
 	public $task = '?(?!login|logout).*';
@@ -9,6 +9,6 @@ class RCShortcuts extends rcube_plugin	{
 	public $noajax = true;
 
 	function init() {
-		$this->include_script('rc-shortcuts.js');
+		$this->include_script('shortcuts.js');
 	}
 }
