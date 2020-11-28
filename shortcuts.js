@@ -99,7 +99,7 @@ function initEvents () {
 		const msgFrame = document.getElementById('messagecontframe');
 		const msgDoc = msgFrame && msgFrame.contentDocument;
 		if (msgDoc) msgDoc.addEventListener('keydown', onKey);
-	}, 500);
+	}, 1000);
 }
 
 
