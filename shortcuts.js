@@ -1,16 +1,20 @@
 const RCM = window.top.rcmail;
 
 const CONDITIONS = {
-	isInEditor: e => !!e.target.closest('#tinymce')
+	isInInput: e => e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT',
+	isInEditor: e => !!e.target.closest('#tinymce'),
+	hasModifier: e => e.metaKey || e.ctrlKey || e.altKey,
+	isModifier: e => e.key === 'Meta' || e.key === 'Alt' || e.key === 'Control',
+	hasVisiblePopup: () => (document.querySelector('.ui-dialog,.popover')?.style?.display === 'block') || false,
 };
 
 const ACTIONS = {
-	goToInbox: e => RCM.command('list', 'INBOX', e.target, e),
+	goToInbox: (e, mailbox = 'INBOX') => RCM.command('list', mailbox, e.target, e),
 	refresh: e => RCM.command('checkmail', '', e.target, e),
 	compose: e => RCM.command('compose', '', '', e),
 	cancel: e => {
 		if (RCM.env.action === 'compose') RCM.command('mail', '', '', e);
-		else ACTIONS.goToInbox(e);
+		else ACTIONS.goToInbox(e, RCM.env.mailbox);
 	},
 	del: e => RCM.command('delete', '', '', e),
 	edit: e => {
@@ -58,7 +62,7 @@ const shortcutsMap = {
 	replyall   : { key: 'a', action: ACTIONS.replyAll },
 	forward    : { key: 'f', action: ACTIONS.forward },
 	send       : { key: 'Enter', meta: true,
-		condition: CONDITIONS.isInEditor,
+		condition: () => RCM.env.action === 'compose',
 		action: ACTIONS.send
 	}
 };
@@ -66,26 +70,33 @@ const shortcutsMap = {
 
 
 function onKey (e) {
-	if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') {
-		if (!e.metaKey && !e.ctrlKey && !e.altKey) return;
-	}
+	const isInEditor = CONDITIONS.isInEditor(e);
+	const isInInput = CONDITIONS.isInInput(e);
+	const hasModifier = CONDITIONS.hasModifier(e);
 
-	const hasPopup = document.querySelector('.ui-dialog,.popover');
-	if (hasPopup) return;
+	// Ignore modifiers only
+	if (CONDITIONS.isModifier(e)) return true;
+
+	// Don't shadow single letter shortcuts in input or editor
+	if ((isInInput || isInEditor) && !hasModifier) return true;
+
+	// Ignore when popup is open
+	if (CONDITIONS.hasVisiblePopup()) return true;
 
 	for (const [, handler] of Object.entries(shortcutsMap)) {
 		const key = e.key === handler.key &&
-			(!handler.meta || handler.meta && e.metaKey) &&
-			(!handler.alt || e.altKey == handler.alt) &&
-			(!handler.ctrl || e.ctrlKey == handler.ctrl);
+			(!!handler.meta === e.metaKey) &&
+			(!!handler.alt === e.altKey) &&
+			(!!handler.ctrl === e.ctrlKey);
 		const condition = (typeof handler.condition === 'function') ? handler.condition(e) : true;
 
 		if (key && condition) {
 			e.preventDefault();
 			handler.action(e);
-			break;
+			return false;
 		}
 	}
+	return true;
 }
 
 
